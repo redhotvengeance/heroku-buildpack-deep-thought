@@ -5,6 +5,7 @@ require "rubygems"
 require "language_pack"
 require "language_pack/base"
 require "language_pack/ruby_version"
+require "fileutils"
 
 # base Ruby Language Pack. This is for any base ruby app.
 class LanguagePack::Ruby < LanguagePack::Base
@@ -122,6 +123,7 @@ class LanguagePack::Ruby < LanguagePack::Base
       end
       super
     end
+    create_ssh_key
   end
 
 private
@@ -770,6 +772,18 @@ params = CGI.parse(uri.query || "")
       cache.clear bundler_cache
       # need to reinstall language pack gems
       install_language_pack_gems
+    end
+  end
+
+  def create_ssh_key
+    if (ENV['SSH_KEY'] && ENV['SSH_KEY'] != '') && (ENV['SSH_HOST'] && ENV['SSH_HOST'] != '')
+      topic("Generating ssh key file from environment variable")
+
+      FileUtils.mkdir_p('~/.ssh')
+      File.open('~/.ssh/id_rsa', 'w') { |file| file.write(ENV['SSH_KEY']) }
+      FileUtils.chmod(600, '~/.ssh/id_rsa')
+      File.open('~/.ssh/config', 'w') { |file| file.write("Host #{ENV["SSH_HOST"]}\n\tStrictHostKeyChecking no\n") }
+      FileUtils.chmod(600, '~/.ssh/config')
     end
   end
 end
