@@ -811,14 +811,16 @@ params = CGI.parse(uri.query || "")
   end
 
   def create_ssh_key
-    if (ENV['SSH_KEY'] && ENV['SSH_KEY'] != '') && (ENV['SSH_HOST'] && ENV['SSH_HOST'] != '')
+    if (env("SSH_KEY") && env("SSH_KEY") != '') && (env("SSH_HOST") && env("SSH_HOST") != '')
       topic("Generating ssh key file from environment variable")
 
-      FileUtils.mkdir_p('~/.ssh')
-      File.open('~/.ssh/id_rsa', 'w') { |file| file.write(ENV['SSH_KEY']) }
-      FileUtils.chmod(600, '~/.ssh/id_rsa')
-      File.open('~/.ssh/config', 'w') { |file| file.write("Host #{ENV["SSH_HOST"]}\n\tStrictHostKeyChecking no\n") }
-      FileUtils.chmod(600, '~/.ssh/config')
+      FileUtils.mkdir_p('.ssh')
+      File.open ".ssh/id_rsa", "w+", 0600 do |f|
+        f.puts env("SSH_KEY")
+      end
+      File.open ".ssh/config", "w+", 0600 do |f|
+        f.puts "Host #{env("SSH_HOST")}\n\tStrictHostKeyChecking no\n"
+      end
     end
   end
 end
